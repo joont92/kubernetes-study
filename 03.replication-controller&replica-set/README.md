@@ -114,3 +114,23 @@
     $ kubectl delete rc kubia --cascade=false
     ```
 - replication controller 를 replicaset 으로 바꾸고자 할 떄, cascade=false 옵션을 사용하면 중단없이 진행할 수 있다
+
+
+---
+
+# replica-set
+- 차세대 replication controller 이며, 추후에는 모든 replication controller 를 대체할 리소스이다
+- replication controller 와 똑같이 동작하지만 좀 더 풍부한 표현식을 사용하는 pod selector 를 가지고 있다
+
+- replicaset 의 주요 속성은 아래와 같다
+    - selector.matchLabels
+        - label 을 equals 비교한다(replication controller 와 동일)
+        - label 을 여러개 줄 수 있다(replication controller 와 다름)        
+    - selector.matchExpressions
+        - 표현식을 추가할 수 있다
+        - key, operator, values 필드를 작성해줘야 한다
+        - operator 에 사용가능한 연산자는 아래와 같다
+            - In : label 의 값이 지정된 값 중 하나와 일치해야 한다
+            - NotIn : label 의 값이 지정된 값과 일치하지 않아야 한다
+            - Exists : 지정된 키를 가진 label 이 포함되어야 한다(values 필드를 지정하지 않아야한다)
+            - DoesNotExists : 지정된 키를 가진 label 이 포함되지 않아야한다(values 필드를 지정하지 않아야한다)

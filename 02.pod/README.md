@@ -84,7 +84,7 @@
     $ kubectl label pods {pod-name} {label_key=label_value}
     # 삭제
     $ kubectl label pods {pod-name} {label_key}-
-    # 덮어쓰기
+    # 덮어쓰기(작성한 label_key 에 대해서만 덮어쓴다)
     $ kubectl label pods {pod-name} {label_key=label_value(,...)} --overwrite
     ```
 

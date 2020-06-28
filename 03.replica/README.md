@@ -118,7 +118,7 @@
 
 ---
 
-# replica-set
+# replica set
 - 차세대 replication controller 이며, 추후에는 모든 replication controller 를 대체할 리소스이다
 - replication controller 와 똑같이 동작하지만 좀 더 풍부한 표현식을 사용하는 pod selector 를 가지고 있다
 

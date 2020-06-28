@@ -3,11 +3,11 @@ kind: DaemonSet
 metadata:
   name: ssd-monitor
 spec:
+  # node 당 이 label 을 가진 pod 가 하나씩 있는지 검사하는듯?
   selector:
     matchLabels:
       app: ssd-monitor
   template:
-    # node 를 고르는것이니까 pod 에는 label 이 필요없지 않을까?
     metadata:
       labels:
         app: ssd-monitor

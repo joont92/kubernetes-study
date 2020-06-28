@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-job
+spec:
+# selector: // job 은 아래 지정한 label 외에 controller-uid 라는 label 이 추가로 생성되는듯 하다
+#   matchLabels:
+#     app: batch-job  
+  template:
+    metadata:
+      labels:
+        app: batch-job
+    spec:
+      restartPolicy: OnFailure # 기본값인 Always 를 사용할 수 없음
+      containers:
+        - name: main
+          image: luksa/batch-job

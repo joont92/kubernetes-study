@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: multi-completion-batch-job
+spec:
+  activeDeadlineSeconds: 150 # 이 시간 내에 job 이 완료되지 않으면 실패로 간주
+  backoffLimit: 3 # job 을 재시도하는 횟수
+  completions: 5 # 5개의 pod 를 성공적으로 완료해야함
+  parallelism: 2 # 한번에 2개씩 병렬로 실행함      
+  template:
+    metadata:
+      labels:
+        app: multi-completion-batch-job
+    spec:
+      restartPolicy: OnFailure      
+      containers:
+        - name: main
+          image: luksa/batch-job

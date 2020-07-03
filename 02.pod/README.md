@@ -292,3 +292,35 @@ $ docker run --net=container:{container_id} -d {image_name}
 
 참고 : <https://coffeewhale.com/k8s/network/2019/04/19/k8s-network-01/>  
 네트워크 브릿지, 라우팅에 대한 이해 필요
+
+---
+
+pod 이라는게 프로세스 1개를 띄우는 것  
+프로세스 id 가 0 으로 뜨고, 그 아래 자식 프로세스들을 띄움  
+process id 0번이 비정상 종료되면 exit code 를 저장하고 있고, pod 에 이 code 가 저장되어 있음  
+spring boot 띄우다 실패하면 0, 1 같은 exit code 가 반환된다  
+
+128 + 9, 128 + 15 같은 오류코드는 오류코드는 리눅스 exit code 를 의미함  
+
+우리회사 서비스들은 spring boot 에 hazelcast + eureka 까지 붙어있어서 spring boot 뜨는데 3분 정도 소요됨  
+
+liveness probe 는 period 시간만큼 계속 호출한다(초기에만 호출하는 것이 아님)  
+> success 1, failure 3 일때 fail, fail, success 이면 fail=2 가 초기화된다  
+
+probe 에 retry 루프를 구현하지 말라는 것은, api 내에 재시도 루프를 구현하지 말라는 뜻(pod 의 기능으로 충분하니까)  
+
+-- 잘못됨
+pod 라는건 노드 내에 있는 정보가 아니라 쿠버네티스 마스터 플레인에 있는 정보이므로,  
+노드내에 수동으로 pod 가 있는 상태에서, 노드가 장애가 나면 레플리케이션 pod 가 없더라도 해당 pod 는 다른 노드에 뜬다(파드 컨트롤러)  
+pod 를 없애는 방법은 pod 를 직접 죽이는 수밖에 없다  
+pod controller 에 pod 정보가 있기 때문에, 노드가 죽으면 컨트롤 플레인과의 아다리가 맞지 않기 때문에 다른 노드에 pod 를 띄우게 된다  
+--
+
+노드 네트워크 다운시 kubelet 이 마스터노드와 통신을 못하게되므로 노드의 네트워크 끊김 상태를 알 수 있다(gke 는 default 가 5분?)  
+
+replicaset 을 직접 생성할 일은 별로 없고, 대부분 deployment 같은 래핑된 리소스를 통해 사용한다  
+
+cronJob 은 여러개, 동시성 같은것을 지정할 수 있으므로 굉장히 편리하다(스프링 scheduled 가 더 좋지 않을까? 스프링을 쓰지 않는다면 얘기가 다르지만)  
+spring 은 한대로 도는데, 이보다는 cronJob 으로 여러대를 돌리는게 더 성능에 좋다  
+deadline 을 설정하지 않으면 cron 다음 시간에 cron 이 실행됨(2개)  
+job 이 실패했을 경우에는 status 가 errored 같은 형태로 남아있으니, 로그를 살펴볼 수 있다  

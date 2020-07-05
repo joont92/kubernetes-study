@@ -16,9 +16,12 @@ docker0 브릿지의 ip 는 ip 는 docker 에서 할당해준 가상 ip 를 사�
 최종적으로 아래와 같은 모습이 된다  
 ![docker-network](img/docker-network.png)  
 
-결과적으로 도커에서 생성한 컨테이너는 전부 이 docker0 브릿지에 연결되기 떄문에 도커 컨테이너끼리 통신이 가능한 것이다(가상 ip 기 때문에 외부로는 접근 불가능)  
+결과적으로 도커에서 생성한 컨테이너는 전부 이 docker0 브릿지에 연결되기 떄문에 도커 컨테이너끼리 통신이 가능한 것이다(가상 ip 이기 때문에 외부로는 접근 불가능)  
 
 docker-compose 로 도커 컨테이너를 생성할 경우 docker0 과 같은 브릿지가 하나 더 연결됨  
+
+docker0 브릿지는 노드의 실제 인터페이스인 eth0 인터페이스와 NAT 로 연결되어 있다  
+그래서~ 외부에서 노드로 들어오면 docker0 으로 가고, docker0 에서 외부로 나갈땐 eth0 을 거친다  
 
 <https://bluese05.tistory.com/38>  
 container 모드를 사용하면 아예 네트워크를 공유한다(ip, mac 이 동일함)  

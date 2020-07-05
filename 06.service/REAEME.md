@@ -64,6 +64,8 @@
     - service 의 ip 와, 지정했던 port 들을 볼 수 있다
     - pod 에서는 위의 환경변수 이름으로 service 의 ip 를 얻고 통신이 가능하다
         - 네이밍 룰은 보다시피 `{service-name}_SERVICE_{property}` 의 형태이다
+    - pod 가 뜰 떄 초기화한다는 특징 떄문에, service 가 항상 pod 보다 먼저 떠야한다
+        - 아니면 새로 pod 를 시작해줘야 한다
 - DNS 를 통한 서비스 검색
     - 쿠버네티스 master 노드(kube-system 네임스페이스)에는 `kube-dns` 라는 service 가 있다
         - 여러개의 kube-dns pod 들이 있고, 이를 가리키는 kube-dns service 가 있다
@@ -90,13 +92,23 @@
     - 그리고 들어오는 요청을 endpoint 에 있는 ip + port 목록 중 하나로 전달하는 것이다
 - endpoint 는 service 생성 시 label selector 를 명시하면 자동으로 생성된다(지정하지 않으면 생성되지 않음)
 - endpoint 를 수동으로 생성하여 service 와 외부 서버를 연결시킬 수 있다
-    - [external-service.yaml](external-service.yaml), [external-service-endpoints.yaml](external-service-endpoints.yaml) 파일 참조
+    - [external-svc-without-endpoints.yaml](external-svc-without-endpoints.yaml), [external-svc-endpoints.yaml](external-svc-endpoints.yaml) 파일 참조
     - 이처럼 구성하면 외부 서버들에 대해 일반 service 를 이용하는 것 처럼 이용할 수 있다
     - 나중에 쿠버네티스 내 pod 들로 마이그레이션 하기도 수월하다
 
 ### ExternalName service
 - 외부 서버를 service 에 연결하기 위해 위의 방법보단, `ExternalName` service 를 이용하는 것이 더 간단하다
-    - [external-service-externalname.yaml](external-service-externalname.yaml) 참조
+    - [external-svc-externalname.yaml](external-svc-externalname.yaml) 참조
 - ExternalName service 는 위의 endpoints 를 생성하는 방식이 아닌, DNS 레벨에서 CNAME 만 추가해주는 방식으로 동작한다
     - 이러한 이유로 ExternalName type 의 service 는 CLUSTER-IP 를 얻지 못한다
     - 일반 service 의 CLUSTER-IP 는 어떤 리소스의 ip 일까? endpoints?
+
+---
+
+# service 네트워크
+- iptables 를 이용해 구현함
+- cbr0 에서 eth0 으로 가는 NAT 에서 service ip 를 pod 의 ip 로 변경함
+- 들어오는 요청도, eth0 에서 cbr0 으로 갈 때 service ip 를 pod 의 ip 로 변경함
+    - 여기서 못 찾으면 다시 게이트웨이로 가서 pod 를 찾을 수 있는데, 이를 설정으로 막을 수 있음
+
+- <https://arisu1000.tistory.com/27851?category=787056>

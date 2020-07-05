@@ -104,6 +104,9 @@
 - 단순히 replication controller 의 replicas 필드의 값만 변경해주면 된다
 - kubectl scale 명령을 통해 실행할수도 있지만, kubectl edit 으로 정의를 편집해주는 것이 좀 더 낫다
 - 쿠버네티스에게 무언가 하라고 알려주는 것이 아니라, 의도하는 상태를 지정할 뿐이다
+    ```shell
+    $ kubectl edit rc {replication-controller-name}
+    ```
     - 이 방향이 쿠버네티스의 주요 동작방식에 맞게 행동하는 것이다
     - 이 방법이 명시적으로 알려주는 방법보다 훨씬 간단하며 오류 발생 가능성이 낮다
 

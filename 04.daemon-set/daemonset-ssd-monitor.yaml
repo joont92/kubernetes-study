@@ -15,5 +15,5 @@ spec:
       nodeSelector:
         disk: ssd
       containers:
-        - name: main
-          image: luksa/ssd-monitor
+      - name: main
+        image: luksa/ssd-monitor

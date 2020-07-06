@@ -13,5 +13,5 @@ spec:
     spec:
       restartPolicy: OnFailure # 기본값인 Always 를 사용할 수 없음
       containers:
-        - name: main
-          image: luksa/batch-job
+      - name: main
+        image: luksa/batch-job

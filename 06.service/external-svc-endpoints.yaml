@@ -3,8 +3,8 @@ kind: Endpoints
 metadata:
   name: external-service # service 의 이름과 일치해야 함
 subsets:
-  - addresses:
-      - ip: 1.1.1.1
-      - ip: 2.2.2.2
-    ports:
-      - port: 80
+- addresses:
+  - ip: 1.1.1.1
+  - ip: 2.2.2.2
+  ports:
+  - port: 80

@@ -225,3 +225,9 @@
     Address: 10.56.2.20
     ```
     - 이 3개의 pod 들은 DNS 라운드로빈 메커니즘으로 로드밸런싱이 제공된다
+
+---
+
+ingress controller = nginx, ingress 의 정보들을 가져와서 사용함
+service 는 특정  서버가 아니라 하나의 명세 같은 것이다
+headless 서비스

@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - image: nginx:alpine
-    name: web-browser
+    name: web-server
     volumeMounts:
     - name: html
       mountPath: /usr/share/nginx/html
@@ -14,4 +14,8 @@ spec:
     - containerPort: 80
       protocol: TCP
   volumes:
-    
+  - name: html
+    gitRepo:
+      repository: https://github.com/joont92/kubia-website-example.git
+      revision: master
+      directory: .

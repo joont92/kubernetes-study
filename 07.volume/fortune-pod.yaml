@@ -10,10 +10,10 @@ spec:
     - name: html
       mountPath: /var/htdocs
   - image: nginx:alpine
-    name: web-browser
+    name: web-server
     volumeMounts:
     - name: html
-      mountPath: /var/share/nginx/html
+      mountPath: /usr/share/nginx/html
       readOnly: true
     ports:
     - containerPort: 80

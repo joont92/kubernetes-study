@@ -84,7 +84,93 @@
     { "_id" : ObjectId("5f0aa154c0a7bdd97ac77e86"), "name" : "foo" }
     ```
 
-## 기반 스토리지 기술과 파드 분리
+## 기반 스토리지 기술과 파드 분리(feat. PersistentVolume, PersistentVolumeClaim)
 - 이상적으로 쿠버네티스에 애플리케이션을 배포하는 개발자는 기저에 어떤 유형의 스토리지 기술이 사용되는지, 어떤 유형의 물리 서버가 사용되는지 알 필요가 없어야 한다
     - 결국 위처럼 pod 정의에 GCE persistent disk 속성이 들어가는 것이 좋은 방향이 아니다
     - pod 정의를 GCE 말고 다른곳에서 사용할 수 없게 된다
+- 쿠버네티스에서는 이를 해결하기 위해(어플리케이션에서 인프라스트럭처를 모르도록) 2가지 리소스를 추가했는데, PersistentVolume 과 PersistentVolumeClaim 이다
+
+### PersistentVolume(pv), PersistentVolumeClaim(pvc)
+- pv 와 pvc 를 사용한 그림은 아래와 같다
+    - ![pv-pvc-flow.jpg](img/pv-pvc-flow.jpg)
+    - 실제 스토리지와 pv 가 연결되고, 이를 pvc 가 연결하고, 이를 pod 에서 사용하는 구조이다
+    - pv 은 특정 네임스페이스에 속하지 않는다(노드와 같은 수준의 리소스)
+- pv 는 [mongodb-pv-gcepd.yaml](mongodb-pv-gcepd.yaml) 와 같이 생성한다
+    - 특정 인프라스트럭처(GCE)에 의존하고 있다
+- 그리고 pvc 는 [mongodb-pvc.yaml](mongodb-pvc.yaml) 와 같이 생성한다
+    - 보다시피 직접 pv 를 명시하지 않는다
+    - pvc 가 생성됨과 동시에 가능한 pv 를 찾아 알아서 연결되는 구조이다
+- 아래는 pv 와 pvc 가 생성된 모습이다
+    ```shell
+    $ kubectl get pv
+    NAME         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM               STORAGECLASS   REASON   AGE
+    mongodb-pv   1G         RWO,ROX        Retain           Bound      default/mongodb-pvc                         2s
+
+    $ kubectl get pvc
+    NAME          STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+    mongodb-pvc   Bound    mongodb-pv   1G         RWO,ROX                       2s
+    ```
+    - pv 가 pvc 에 연결된 상태이고, 이 상태에서는 다른 pvc 가 이 pv 에 연결할 수 없다
+- 이제 pod 에서 이 pvc 를 사용하면 된다([mongodb-pod-pvc.yaml](mongodb-pod-pvc.yaml) 참조)
+    - 보다시피 pod 에서 pvc 의 이름만 참조해서 스토리지 연결을 함으로써, 개발자는 기저에 사용된 실제 스토리지 기술을 알 필요가 없어지는 장점이 생긴다(pv 까지는 관리자가 정의, pvc 부터는 개발자가 정의)
+    - 이 pod 의 manifest 를 다른 쿠버네티스 클러스터에서도 사용할 수 있다
+- 한번 사용된 pv 에는 데이터가 저장되어 있기 때문에, 관리자가 pv 를 비우지 않으면 새로운 pvc 에 바인딩할 수 없다
+    ```shell
+    $ kubectl delete po mongodb
+    pod "mongodb" deleted
+
+    $ kubectl delete pvc mongodb-pvc
+    persistentvolumeclaim "mongodb-pvc" deleted
+
+    $ kubectl create -f mongodb-pvc.yaml
+    persistentvolumeclaim/mongodb-pvc created
+
+    $ kubectl get pvc
+    NAME          STATUS    VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+    mongodb-pvc   Pending                                                         4s
+
+    $ kubectl get pv
+    NAME         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                 STORAGECLASS   REASON   AGE
+    mongodb-pv   1G         RWO,ROX        Retain           Released   default/mongodb-pvc                           19m
+    ```
+    - persistentVolumeClaimPolicy 속성이 Retain 이기 때문이다
+        - Retain : pvc 가 해제되도 pv 와 컨텐츠가 유지된다
+        - Recycle : pvc 가 해제되면 pv 의 컨텐츠를 삭제하고 다시 claim 가능한 상태로 만든다
+        - Delete : 기반 스토리지를 삭제한다
+    - 이 속성을 모두 사용할 수 있는건 아니고, 기반 스토리지에서 지원해줘야만 사용할 수 있다
+
+## PersistentVolume 의 동적 프로비저닝
+- pv 와 pvc 를 이용해 간접 접근하는것 까진 좋았으나, 매번 실제 스토리지와 pv 를 프로비저닝 해둬야 한다는 단점이 있다
+- 이를 해결하기 위해 쿠버네티스는 StorageClass 라는 리소스로 pv 의 동적 프로비저닝을 지원한다
+
+### StorageClass(sc)
+- sc 를 만들고 pvc 에서 이를 지정하면, pvc 가 만들어질 떄 StorgeClass 를 통해 pv 를 프로비저닝하는 방식이다
+    - pd 생성 -> pv 생성 -> pv 에 pd 연결 -> pvc 에 pv 연결
+    - 가장 큰 장점은 pv 가 부족할 일이 없다는 점이다
+    - 기존에는 pd 와 pv 를 여유롭게 만들어놔야만 했다
+- sc 정의는 [storageclass-fast-gcepc.yaml](storageclass-fast-gcepc.yaml) 를 참조한다
+    - pvc 가 sc 에 요청하게 되면 `kubernetes.io/gce-pd` 프로비저너 플러그인을 사용해 pv 를 프로비저닝한다
+    - gce-pd 프로비저너이므로 쿠버네티스 클러스터가 GCE 에서 실행중일 때만 사용 가능하다
+- sc 를 사용하는 pvc 정의는 [mongodb-pvc-dp.yaml](mongodb-pvc-dp.yaml) 를 참조한다
+    - 간단히 사용할 sc 만 지정해주면 된다
+- 이제 pvc 를 생성하면 아래와 같이 pv 가 프로비저닝 된다
+    ```shell
+    $ kubectl get pvc
+    NAME             STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+    mongodb-pvc-dp   Bound     pvc-8c0cedce-c516-11ea-8cf4-42010ab20010   1Gi        RWO            fast           20m
+
+    $ kubectl get pv
+    NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                    STORAGECLASS   REASON   AGE
+    pvc-8c0cedce-c516-11ea-8cf4-42010ab20010   1Gi        RWO            Delete           Bound    default/mongodb-pvc-dp   fast                    21m
+    ```
+
+- pvc 정의에 sc 를 지정하지 않은 경우, default sc 가 사용된다
+    ```shell
+    $ kubectl get sc
+    NAME                 PROVISIONER            AGE
+    fast                 kubernetes.io/gce-pd   33m
+    standard (default)   kubernetes.io/gce-pd   17d # 요거!
+    ```
+    - default sc 는 pvc 정의에서 `StorageClassName` 속성을 지정하지 않은 경우 사용된다
+- 새로 pv 를 생성하지 않고 기존에 있는 pv 만을 사용하도록 할 수도 있다
+    - `StorageClassName` 속성의 값을 `""` 으로 주면 된다

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pvc-dp-no-sc
+spec:
+  resources:
+    requests:
+      storage: 100M
+  accessModes:
+  - ReadWriteOnce

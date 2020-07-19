@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune-env
+spec:
+  containers:
+  - image: joont92/fortune:env
+    name: html-generator
+    env:
+    - name: INTERVAL
+      value: "30"
+    volumeMounts:
+    - name: html
+      mountPath: /var/htdocs
+  volumes:
+  - name: html
+    emptyDir: {}

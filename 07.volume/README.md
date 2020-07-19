@@ -84,7 +84,7 @@
     { "_id" : ObjectId("5f0aa154c0a7bdd97ac77e86"), "name" : "foo" }
     ```
 
-## 기반 스토리지 기술과 파드 분리(feat. PersistentVolume, PersistentVolumeClaim)
+## 기반 스토리지 기술과 파드 분리
 - 이상적으로 쿠버네티스에 애플리케이션을 배포하는 개발자는 기저에 어떤 유형의 스토리지 기술이 사용되는지, 어떤 유형의 물리 서버가 사용되는지 알 필요가 없어야 한다
     - 결국 위처럼 pod 정의에 GCE persistent disk 속성이 들어가는 것이 좋은 방향이 아니다
     - pod 정의를 GCE 말고 다른곳에서 사용할 수 없게 된다
@@ -174,3 +174,15 @@
     - default sc 는 pvc 정의에서 `StorageClassName` 속성을 지정하지 않은 경우 사용된다
 - 새로 pv 를 생성하지 않고 기존에 있는 pv 만을 사용하도록 할 수도 있다
     - `StorageClassName` 속성의 값을 `""` 으로 주면 된다
+
+---
+
+gitRepo volume deprecated
+hostPath 를 쓰는 파드들은 대부분 데몬셋으로 쓰는 파드들(로그를 읽어서 elk 로 전송)
+pv 의 크기보다 pvc 의 크기가 크면 문제가 될 수 있다(pv 의 크기가 pvc 를 수용할 수 있을만큼 커야함)
+노드가 pv 에 마운트한다는게 무슨 얘기?
+sc 도 pv 와 같이 네임스페이스에 속하지 않는다
+pvc 는 특정 네임스페이스에 생성된다
+pod 에서 스토리지를 사용하려면 미리 pvc 를 생성해놓아야 한다(재시작되어도 그대로 해당 pvc 를 그대로 사용함)
+다른 네임스페이스의 pod 에서 pvc 를 그대로 사용할 수 있는 경우는?
+reclaim 정책에서 Recycle 정책은 deprecated 되었다

@@ -22,3 +22,9 @@
     - 이를 위해 어플리케이션을 서버에 독립적으로 배포할 수 있는, 컨테이너 기술이라는 것이 등장하였다
 # 도커
 - 가상머신의 경우 각자 커널을 가지고있지만, 도커의 경우 커널은 호스트 OS 와 같은 것을 사용한다
+
+- docker image layer
+https://m.blog.naver.com/PostView.nhn?blogId=alice_k106&logNo=220403041813&proxyReferer=https%3A%2F%2Fwww.google.com%2F
+
+- entrypoint, cmd
+https://bluese05.tistory.com/77

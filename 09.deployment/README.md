@@ -301,15 +301,15 @@ spec:
 > 참고로 여기서 Deployment 의 type 을 RollingUpdate 로 줬는데, 원래 이게 default 값이다  
 > RollingUpdate 외에 Recreate 도 있는데, 이는 처음에 언급했던 중단 배포 방식(다 지우고 새로 배포)이다  
 
-maxSurge
-- Deployment 가 의도하는 replica 수보다 얼마나 많은 pod 수를 허용할 수 있는지 결정한다
-- 기본값은 25%이다(백분율을 숫자로 반환하면 값이 반올림 됨)
-- 숫자로 지정 가능
+- maxSurge
+  - Deployment 가 의도하는 replica 수보다 얼마나 많은 pod 수를 허용할 수 있는지 결정한다
+  - 기본값은 25%이다(백분율을 숫자로 반환하면 값이 반올림 됨)
+  - 숫자로 지정 가능
 
-maxUnavaliable
-- Deployment 가 의도하는 replica 수를 기준으로 사용할 수 없는 pod 수를 결정한다
-- 기본값은 25%이다(백분율을 숫자로 반환하면 값이 내림 됨)
-- 숫자로 지정 가능
+- maxUnavaliable
+  - Deployment 가 의도하는 replica 수를 기준으로 사용할 수 없는 pod 수를 결정한다
+  - 기본값은 25%이다(백분율을 숫자로 반환하면 값이 내림 됨)
+  - 숫자로 지정 가능
 
 말로만 봐서는 이해가 가지 않는데, 위의 maxSurge/maxUnavaliable 속성을 통해 rollout 이 어떻게 진행되는지 보자  
 ![rollout-process](img/rollout-process.jpg)
@@ -454,3 +454,5 @@ Deployment 를 사용한 blue/green 배포 절차는 다음과 같다
 4. 문제없으면 kubia-blue Deployment 를 삭제하고, 문제가 발생했다면 다시 svc 의 labelSelector 를 변경해서 롤백해주면 된다
 
 하드웨어 리소스가 한동안 2배로 필요하다는 단점은 존재한다
+
+canary 배포는 <https://arisu1000.tistory.com/27842> 를 참조한다

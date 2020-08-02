@@ -1,4 +1,4 @@
-## rc로 수동 업데이트 수행
+# rc로 수동 업데이트 수행
 Service, ReplicaSet, Pod 로 구성된 어플리케이션을 새로운 버전으로 업데이트해야 할 때, 기본적으로 아래 2가지 방법을 쓸 수 있다  
 - 기존 파드를 모두 삭제한 다음 새 파드를 시작한다
 - 새로운 파드를 시작하고, 기동하면 기존 파드를 삭제한다
@@ -29,7 +29,7 @@ Service, ReplicaSet, Pod 로 구성된 어플리케이션을 새로운 버전으
   apiVersion: v1
   kind: ReplicationController
   metadata:
-    ...
+    # ...
   spec:
     replicas: 3
     selector:
@@ -44,9 +44,9 @@ Service, ReplicaSet, Pod 로 구성된 어플리케이션을 새로운 버전으
         containers:
         - image: luksa/kubia:v1 # 이 부분 luksa/kubia:v2 로 변경하고 저장
           imagePullPolicy: IfNotPresent
-        ...
+        # ...
   status:
-    ...
+    # ...
   ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
   replicationcontroller/kubia-v1 edited  
@@ -78,7 +78,7 @@ Service, ReplicaSet, Pod 로 구성된 어플리케이션을 새로운 버전으
 
 위와 같이 어플리케이션 버전을 변경할 수 있지만, 수동으로 해줘야 하는 부분이 많아서 운영에서 쓰기에는 불편해보인다
 
-## rc로 자동 업데이트 수행
+# rc로 자동 업데이트 수행
 kubectl 의 `rolling-update` 명렁어를 사용하면 더 간편하게 rolling update 를 수행할 수 있다  
 ```sh
 $ kubectl rolling-update kubia-v1 kubia-v2 --image=luksa/kubia:v2
@@ -190,7 +190,7 @@ deployment label 을 각각 추가해줌으로써 rc 간에 pod select 가 겹�
   - rolling-update 하는 동안 클라이언트 세션을 계속해서 유지해줘야 한다
   - 선언적으로 업데이트를 달성하는 쿠버네티스의 메인 철학에 맞지 않는다
 
-### Deployment
+# Deployment
 위와 같은 단점때문에 Deployment 라는 새로운 오브젝트가 나오게 되었다  
 배포시에 위의 rolling-update 처럼 직접 마스터 플레인에 명령을 수행하지 않고, Deployment 의 상태를 변경함으로써 선언적으로 배포를 달성할 수 있다  
 Deployment 는 자신이 직접 배포를 수행하지 않고 rs 를 통해 배포를 수행하는 high-level 오브젝트라는 특징이 있다  
@@ -383,3 +383,74 @@ This is v2 running in pod kubia-7c699f58dd-wmrcq
 This is v2 running in pod kubia-7c699f58dd-wmrcq
 ```
 
+# Deployment 를 이용한 blue/green 배포
+매우 간단하게 설정 가능하다  
+기존 서비스가 [bluegreen-blue.yaml](bluegreen-blue.yaml), [bluegreen-service.yaml](bluegreen-service.yaml) 로 구성되어 있다고 가정하자  
+```sh
+$ kubectl get po
+NAME                           READY   STATUS    RESTARTS   AGE
+kubia-blue-77599c9c8b-2qfnz    1/1     Running   0          103m
+kubia-blue-77599c9c8b-nkzqj    1/1     Running   0          103m
+kubia-blue-77599c9c8b-vdmpd    1/1     Running   0          103m
+
+$ kubectl get svc
+kubia        LoadBalancer   10.120.3.13   34.64.200.253   80:31958/TCP   103m
+```
+
+현재 이미지 버전이 v1 인데, 이를 v2 로 올려야 한다  
+Deployment 를 사용한 blue/green 배포 절차는 다음과 같다
+1. [bluegreen-green.yaml](bluegreen-green.yaml) 을 통해 v2 이미지를 가진 Deployment 를 생성한다
+  ```sh
+  $ kubectl create -f bluegreen-green.yaml
+  deployment/kubia-green created
+
+  $ kubectl get po
+  NAME                           READY   STATUS    RESTARTS   AGE
+  kubia-blue-77599c9c8b-2qfnz    1/1     Running   0          105m
+  kubia-blue-77599c9c8b-nkzqj    1/1     Running   0          105m
+  kubia-blue-77599c9c8b-vdmpd    1/1     Running   0          105m
+  kubia-green-6b9bbb8f5d-c5fbg   1/1     Running   0          98s
+  kubia-green-6b9bbb8f5d-d5hqg   1/1     Running   0          98s
+  kubia-green-6b9bbb8f5d-p6t2f   1/1     Running   0          98s
+  ```
+2. svc 의 labelSelector 를 수정한다
+  - 어떤 방식으로 하든 상관없는데, 여기서는 `kubectl edit` 으로 수정했다
+  ```sh
+  $ kubectl edit svc kubia
+  ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  apiVersion: v1
+  kind: Service
+  metadata:
+    # ...
+  spec:
+    # ...
+    selector:
+      app: kubia
+      version: v1 # 이 부분 v2 로 변경
+    # ...
+  status:
+    # ...
+  ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  ```
+3. 트래픽이 v1 에서 v2 로 바로 변경되었다
+  ```sh
+  $ while true; do sleep 1s; curl http://34.64.200.253; done
+  This is v1 running in pod kubia-blue-77599c9c8b-nkzqj
+  This is v1 running in pod kubia-blue-77599c9c8b-nkzqj
+  This is v1 running in pod kubia-blue-77599c9c8b-vdmpd
+  This is v1 running in pod kubia-blue-77599c9c8b-2qfnz
+  This is v1 running in pod kubia-blue-77599c9c8b-nkzqj
+  This is v1 running in pod kubia-blue-77599c9c8b-2qfnz
+  This is v1 running in pod kubia-blue-77599c9c8b-vdmpd
+  This is v1 running in pod kubia-blue-77599c9c8b-2qfnz
+  This is v1 running in pod kubia-blue-77599c9c8b-2qfnz
+  This is v1 running in pod kubia-blue-77599c9c8b-nkzqj
+  This is v2 running in pod kubia-green-6b9bbb8f5d-c5fbg
+  This is v2 running in pod kubia-green-6b9bbb8f5d-p6t2f
+  This is v2 running in pod kubia-green-6b9bbb8f5d-d5hqg
+  This is v2 running in pod kubia-green-6b9bbb8f5d-d5hqg
+  This is v2 running in pod kubia-green-6b9bbb8f5d-c5fbg
+  ```
+4. 문제없으면 kubia-blue Deployment 를 삭제하고, 문제가 발생했다면 다시 svc 의 labelSelector 를 변경해서 롤백해주면 된다
+
+하드웨어 리소스가 한동안 2배로 필요하다는 단점은 존재한다

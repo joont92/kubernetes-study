@@ -96,7 +96,7 @@
     4. 해당 노드에서 해당 pod 를 찾는다
 - 즉, service 의 cluster ip 는 실제 할당된 IP 가 아니라 단순 매핑용 IP 일 뿐이다
 - 과거에는 kube-proxy 가 직접 해줬으나, 성능 이슈 때문에 iptables 로 변경하였다(kube-proxy 는 apiserver 로 부터 요청을 받아 iptables 를 수시로 변경)
-    - pod 과 service 가 되어 iptables 에 규칙이 수천개가 되면 결국 또 성능 이슈가 발생하기 떄문에, 최근에는 ipvs 를 이용해 구현하는 기능이 나왔다
+    - iptables 에 규칙이 수천개가 되면 결국 또 성능 이슈가 발생하기 떄문에, 최근에는 ipvs 를 이용해 구현하는 기능이 나왔다
 
 ### endpoint
 - service 와 pod 는 직접 연결되는 것이 아니라, 중간에 endpoint 라는 리소스가 끼어있다

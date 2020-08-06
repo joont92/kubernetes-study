@@ -121,7 +121,8 @@
     - [external-svc-externalname.yaml](external-svc-externalname.yaml) 참조
 - ExternalName service 는 위의 endpoints 를 생성하는 방식이 아닌, DNS 레벨에서 CNAME 만 추가해주는 방식으로 동작한다
     - iptables 를 갈 필요가 없기 떄문에 cluster ip 가 필요없다
-    - iptables 에 도메인은 입력 못하기 떄문에 ExternalName 형태가 아닌 service 들은 cluster ip 가 필요하다
+    - cluster ip 의 경우 대응되는 pod ip가 공인 ip 가 아니라서 iptables 를 사용하는 것 같다..
+    - 서비스 디스커버리를 dns 로 하면 dns 부하가 커지니까 이를 염려해서 한 것 같기도 하고..
 
 
 ## 외부 클라이언트에 service 노출

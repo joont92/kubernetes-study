@@ -21,7 +21,7 @@
 
 ## volume 을 사용한 컨테이너 간 데이터 공유
 ### emptyDir
-- [fortune/fortuneloop.sh](fortune/fortuneloop.sh), [Dockerfile](Dockerfile), [fortune-pod.yaml](fortune-pod.yaml) 참조
+- [fortuneloop.sh](fortune/fortuneloop.sh), [Dockerfile](fortune/Dockerfile), [fortune-pod.yaml](fortune-pod.yaml) 참조
 - volume 이 빈 디렉터리로 시작된다
 - 어떤 파일이든 volume 에 쓸 수 있다
 - volume 의 라이프사이클이 pod 에 묶여 있으므로, pod 가 삭제되면 volume 의 컨텐츠도 삭제된다

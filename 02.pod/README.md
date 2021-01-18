@@ -47,7 +47,7 @@
     ```
 - 파드의 전체 정의보기
     ```shell
-    $ kubectl get pods -o yaml
+    $ kubectl get pods {pod-name} -o yaml
     ```
 - 파드 로그 보기
     ```shell

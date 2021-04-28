@@ -7,5 +7,5 @@ spec:
   - image: luksa/kubia
     name: kubia
     ports:
-    - containerPort: 8080
+    - containerPort: 8080 # 그냥 외부에 알리는 용도. 방화병을 의미하는건 아니라고 
       protocol: TCP
